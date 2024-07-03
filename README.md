@@ -1,92 +1,31 @@
 # TransAtlas_AF
 
+Here are presented all the scripts developed for this project. The methods used by other authors are not included.
 
+## AlphaFold running
+First, there is an example of how to run AlphaFold (script named AF_run_example.sh). The variables needed to change are in this command line:
+'''
+python RunAF2multi.py /scratch/mmb/mromagosa/AFCluster/msas1DEG/EX_{101..150}.a3m --model_num 1 --recycles 3 --output_dir out1DEG --af2_dir /apps/alpha_fold
+'''
 
-## Getting started
+## Experimental structures clsutering
+The .py file is the one that makes AlphaFold run. The first argument are the MSAs that have to be introduced. This argument has to be changed depending on the MSAs that one wants to model. The other argument that needs to be changed is the --output_dir, which is where do the pdb files of the generated structure predictions get saved.
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+The script exp_filter.py clusters the experimental structures by similarity and gives as output a file with the file names of the representative structure of each cluster. The inputs needed are: '''--path_exp''' (path to the directory where the pdb of the experimental structures are saved) and '''--out_file''' (file where the representative structure names will be written).
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+## Quality factor
+qmean.py makes a query to QMEAN to compute the qmean6 quality factor. The needed inputs are --path_AF, that is the directory of the AlphaFold generated structures, and --out_file, that is the file name where the results will be saved. This file contains 2 columns. The first one includes the file names of all processed pdbs and the second one is the computed qmean6 score.
 
-## Add your files
+## AF structures analysis
+The file analysis_filter.py filters the structure with not enough quality, taking the data from the proviously explained file, computes the RMSD between all the AF-generated structures to later cluster them, get with the centroids as representative structures and discard the redundant structures. Later, the RMSD between all the AF-generated structures and the experimental structures is computed. This metric is used to determine if the protocol is able to reproduce the different experimentally solved conformations. This script gives as output figures of the all-to-all RMSD, the RMSD between the AF structures and the experimental structures when no filter is done, when the structures are filtered, when the structures are clustered and when the structures are filtered and clustered. There is also a file with lists about:
+ - Before filtering by quality: all the AF-structures file name, the experimental structure file name that is closer to that AF-structure and the RMSD of the pair; all the experimental structures with its closest AF-structure and the RMSD of the pair; and the experimental structure with its closest centroid.
+ - After filtering by quality, the same results are presented. 
+ 
+ In all cases, the percentage of covered structures is presented (understanding covered as being the best pair for some structure).
+ This script also gives as output a file with a list of the file names of the structures detemined to be the centroids of each cluster.
+ 
+The needed arguments to use this file are: --path_AF (Path of the PDB files), --exp_list (Path to the file with the experimental representative structure names), --out_file (name of the file where all the mentioned information will be saved), --qmean_th (Threshold for the qmean filter), cluster_th (distance threshold for the cluster generation), qmean_file (file with the list of the pdb files and their qmean6 score). Some other not required arguments can be given. These are added when the RMSDs have already been generated and just other arguments are wanted to be changed, since the creation of the RMSD matrix is most computationally expensive part. The arguments are --rmsd (all-to-all rmsd in .npy format) and --rmsd_exp (rmsd between the AF-generated structures and the experimetnal structures).
+ 
+## Trajectory generation
+To compute the trajectories, it is needed to download the [workflow from biobb](https://mmb.irbbarcelona.org/biobb/workflows#protein-conformational-transitions-calculations). Then, the script I created named megaworkflow.py uploads the .yml file and runs the workflow.py file fore every needed trajectory. The program computes the trajectory between all the centroids. The file with a list of all centroids is given as input (--centroid_list). 
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
-
-```
-cd existing_repo
-git remote add origin https://mmb.irbbarcelona.org/gitlab/MMBData/transatlas_af.git
-git branch -M main
-git push -uf origin main
-```
-
-## Integrate with your tools
-
-- [ ] [Set up project integrations](https://mmb.irbbarcelona.org/gitlab/MMBData/transatlas_af/-/settings/integrations)
-
-## Collaborate with your team
-
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Automatically merge when pipeline succeeds](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
